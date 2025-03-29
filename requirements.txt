@@ -3,8 +3,8 @@ uvicorn
 psycopg2-binary
 python-dotenv
 openai
-fitz  # PyMuPDF para leer PDF
+PyMuPDF
 requests
 tiktoken
+xhtml2pdf
 jinja2
-weasyprint
