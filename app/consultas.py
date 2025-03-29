@@ -28,9 +28,9 @@ def resumen_estudiante(id: str):
     """, (id,))
     promedios = [{"Asignatura": row[0], "Promedio": row[1]} for row in cur.fetchall()]
 
-    # Observaciones
+    # ObservacionEstudiantees
     cur.execute("""
-        SELECT COUNT(*) FROM "Observacion"
+        SELECT COUNT(*) FROM "ObservacionEstudiante"
         WHERE "IdEstudiante" = %s
     """, (id,))
     obs_total = cur.fetchone()[0]
@@ -40,7 +40,7 @@ def resumen_estudiante(id: str):
     return {
         "PromedioGeneral": promedio_general,
         "PromedioPorAsignatura": promedios,
-        "CantidadObservaciones": obs_total
+        "CantidadObservacionEstudiantees": obs_total
     }
 
 @router.get("/cursos/{id}/ranking")
@@ -75,9 +75,9 @@ def alertas_estudiante(id: str):
     """, (id,))
     promedio = cur.fetchone()[0] or 0
 
-    # Observaciones en el último mes
+    # ObservacionEstudiantees en el último mes
     cur.execute("""
-        SELECT COUNT(*) FROM "Observacion"
+        SELECT COUNT(*) FROM "ObservacionEstudiante"
         WHERE "IdEstudiante" = %s AND "Fecha" >= CURRENT_DATE - INTERVAL '30 days'
     """, (id,))
     observaciones = cur.fetchone()[0]
@@ -91,7 +91,7 @@ def alertas_estudiante(id: str):
     cur.close(); conn.close()
     return {
         "Promedio": round(promedio, 1),
-        "Observaciones30Dias": observaciones,
+        "ObservacionEstudiantees30Dias": observaciones,
         "Alertas": alertas
     }
 
@@ -155,8 +155,8 @@ def generar_informe(id: str):
     """, (id,))
     ultimas_notas = [{"Asignatura": r[0], "Nota": float(r[1]), "Fecha": r[2]} for r in cur.fetchall()]
 
-    # Observaciones
-    cur.execute("""SELECT "Fecha", "Texto" FROM "Observacion" WHERE "IdEstudiante" = %s ORDER BY "Fecha" DESC""", (id,))
+    # ObservacionEstudiantees
+    cur.execute("""SELECT "Fecha", "Texto" FROM "ObservacionEstudiante" WHERE "IdEstudiante" = %s ORDER BY "Fecha" DESC""", (id,))
     observaciones = [{"Fecha": r[0], "Texto": r[1]} for r in cur.fetchall()]
 
     # Alertas
@@ -164,7 +164,7 @@ def generar_informe(id: str):
     if promedio_general and promedio_general < 4.0:
         alertas.append("Promedio académico bajo")
     cur.execute("""
-        SELECT COUNT(*) FROM "Observacion"
+        SELECT COUNT(*) FROM "ObservacionEstudiante"
         WHERE "IdEstudiante" = %s AND "Fecha" >= CURRENT_DATE - INTERVAL '30 days'
     """, (id,))
     if cur.fetchone()[0] >= 3:
