@@ -1,13 +1,17 @@
 from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
+from xhtml2pdf import pisa
 import os
 
-# Carga la plantilla desde la carpeta templates
 env = Environment(loader=FileSystemLoader("app/templates"))
 
 def generar_pdf(contexto, nombre_pdf="informe.pdf"):
     template = env.get_template("informe_estudiante.html")
     html_content = template.render(contexto)
-    ruta_salida = f"/tmp/{nombre_pdf}"  # ubicación temporal
-    HTML(string=html_content).write_pdf(ruta_salida)
-    return ruta_salida
+
+    output_path = f"/tmp/{nombre_pdf}"
+    with open(output_path, "wb") as result_file:
+        pisa_status = pisa.CreatePDF(html_content, dest=result_file)
+        if pisa_status.err:
+            raise Exception("❌ Error al generar PDF")
+    return output_path
+
