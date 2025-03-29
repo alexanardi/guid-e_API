@@ -6,3 +6,5 @@ openai
 fitz  # PyMuPDF para leer PDF
 requests
 tiktoken
+jinja2
+weasyprint
