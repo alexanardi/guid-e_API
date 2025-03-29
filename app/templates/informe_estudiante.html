@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.4">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="utf-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>body { font-family: Arial, sans-serif; font-size: 14px; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>h1 { text-align: center; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.box { margin-bottom: 15px; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>table { width: 100%; border-collapse: collapse; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;h1&gt;Informe Académico&lt;/h1&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="box"&gt;&lt;strong&gt;Estudiante:&lt;/strong&gt; {{ nombre }} {{ apellidos }}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="box"&gt;&lt;strong&gt;Curso:&lt;/strong&gt; {{ curso }} | &lt;strong&gt;Nivel:&lt;/strong&gt; {{ nivel }}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="box"&gt;&lt;strong&gt;Promedio general:&lt;/strong&gt; {{ promedio_general or 'N/A' }}&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="box"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;strong&gt;Promedios por asignatura:&lt;/strong&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;ul&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{% for p in promedios %}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;li&gt;{{ p.Asignatura }}: {{ p.Promedio }}&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{% endfor %}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/ul&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="box"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;strong&gt;Últimas calificaciones:&lt;/strong&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;table&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;tr&gt;&lt;th&gt;Asignatura&lt;/th&gt;&lt;th&gt;Nota&lt;/th&gt;&lt;th&gt;Fecha&lt;/th&gt;&lt;/tr&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{% for n in ultimas_notas %}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;tr&gt;&lt;td&gt;{{ n.Asignatura }}&lt;/td&gt;&lt;td&gt;{{ n.Nota }}&lt;/td&gt;&lt;td&gt;{{ n.Fecha }}&lt;/td&gt;&lt;/tr&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{% endfor %}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/table&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="box"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;strong&gt;Observaciones:&lt;/strong&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;ul&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{% for o in observaciones %}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;li&gt;{{ o.Fecha }}: {{ o.Texto }}&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{% endfor %}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/ul&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>{% if alertas %}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="box"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;strong style="color: red;"&gt;Alertas:&lt;/strong&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;ul&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{% for alerta in alertas %}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;li&gt;{{ alerta }}&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{% endfor %}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/ul&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{% endif %}</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>

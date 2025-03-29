@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.db import get_connection
 from app import nivel, curso, asignatura, calificacion, estudiante, observacion, archivo
+from app import consultas
 
 app = FastAPI()
 
