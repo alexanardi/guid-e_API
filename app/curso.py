@@ -1,7 +1,7 @@
 # app/curso.py
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from db import get_connection
+from app.db import get_connection
 
 router = APIRouter()
 
