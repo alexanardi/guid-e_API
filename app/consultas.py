@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request
+from app.embeddings import buscar_fragmentos_relacionados
 from fastapi.responses import FileResponse
 from app.db import get_connection
 from app.pdf_utils import generar_pdf
@@ -197,3 +198,37 @@ def generar_informe(id: str, request: Request):  # <- se agregó "request"
 
     return {"informe_url": url}
 
+@router.post("/estudiantes/{id}/preguntar")
+def preguntar_estudiante(id: str, data: dict, request: Request):
+    pregunta = data.get("pregunta")
+    if not pregunta:
+        raise HTTPException(status_code=400, detail="Falta la pregunta")
+
+    # Buscar fragmentos en la base de datos
+    fragmentos = buscar_fragmentos_relacionados(id_estudiante=id, pregunta=pregunta)
+    
+    if not fragmentos:
+        return {
+            "respuesta": "No encontré información relevante en los archivos del estudiante para responder a tu pregunta.",
+            "fragmentos_usados": []
+        }
+
+    # Crear el prompt para OpenAI
+    contexto = "\n".join([f["fragmento"] for f in fragmentos])
+    prompt = f"""Usa la siguiente información de contexto para responder la pregunta.
+
+Contexto:
+{contexto}
+
+Pregunta:
+{pregunta}
+
+Respuesta:"""
+
+    from app.llm import obtener_respuesta
+    respuesta = obtener_respuesta(prompt)
+
+    return {
+        "respuesta": respuesta,
+        "fragmentos_usados": fragmentos
+    }
