@@ -70,3 +70,20 @@ def eliminar_estudiante(id: str):
         raise HTTPException(status_code=404, detail="Estudiante no encontrado")
     conn.commit(); cur.close(); conn.close()
     return {"message": "Estudiante eliminado correctamente"}
+
+@router.get("/estudiantes/buscar", response_model=Optional[EstudianteOut])
+def buscar_estudiante(nombre: str, apellidos: str):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT "IdEstudiante", "Nombre", "Apellidos", "IdCurso"
+        FROM "Estudiante"
+        WHERE "Nombre" ILIKE %s AND "Apellidos" ILIKE %s
+        LIMIT 1
+    """, (f"%{nombre}%", f"%{apellidos}%"))
+    row = cur.fetchone()
+    cur.close(); conn.close()
+
+    if row:
+        return EstudianteOut(IdEstudiante=row[0], Nombre=row[1], Apellidos=row[2], IdCurso=row[3])
+    raise HTTPException(status_code=404, detail="Estudiante no encontrado")
