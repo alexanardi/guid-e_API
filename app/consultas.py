@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
 from app.db import get_connection
 from app.pdf_utils import generar_pdf
@@ -115,7 +115,7 @@ def ultimas_notas(id: str):
     return result
 
 @router.get("/estudiantes/{id}/informe")
-def generar_informe(id: str):
+def generar_informe(id: str, request: Request):  # <- se agregó "request"
     conn = get_connection()
     cur = conn.cursor()
 
@@ -158,7 +158,7 @@ def generar_informe(id: str):
     """, (id,))
     ultimas_notas = [{"Asignatura": r[0], "Nota": float(r[1]), "Fecha": r[2]} for r in cur.fetchall()]
 
-    # ObservacionEstudiantees
+    # Observaciones
     cur.execute("""SELECT "Fecha", "Texto" FROM "ObservacionEstudiante" WHERE "IdEstudiante" = %s ORDER BY "Fecha" DESC""", (id,))
     observaciones = [{"Fecha": r[0], "Texto": r[1]} for r in cur.fetchall()]
 
@@ -187,25 +187,13 @@ def generar_informe(id: str):
         "alertas": alertas
     }
 
-    # Generar nombre de archivo dinámico
-    # def slugify(text):
-    #    text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
-    #    text = re.sub(r'[^\w\s-]', '', text).strip().lower()
-    #    return re.sub(r'[-\s]+', '_', text)
-
-    # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    # nombre_slug = slugify(nombre)
-    # apellidos_slug = slugify(apellidos)
-    # nombre_archivo = f"informe_{nombre_slug}_{apellidos_slug}_{timestamp}.pdf"
-
-
-    # ruta_pdf = generar_pdf(contexto, nombre_archivo)
-    # return FileResponse(ruta_pdf, filename=nombre_archivo, media_type="application/pdf")
-
+    # Generar nombre y PDF
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     nombre_pdf = f"informe_{nombre.lower()}_{apellidos.lower()}_{timestamp}.pdf".replace(" ", "_")
-    nombre_pdf = generar_pdf(contexto, nombre_pdf)
+    nombre_archivo = generar_pdf(contexto, nombre_pdf)
 
+    # URL del archivo PDF
     url = f"{request.base_url}static/{nombre_pdf}"
 
     return {"informe_url": url}
+
