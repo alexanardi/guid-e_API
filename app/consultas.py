@@ -2,6 +2,9 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from app.db import get_connection
 from app.pdf_utils import generar_pdf
+from datetime import datetime
+import unicodedata
+import re
 
 router = APIRouter()
 
@@ -184,6 +187,18 @@ def generar_informe(id: str):
         "alertas": alertas
     }
 
-    ruta_pdf = generar_pdf(contexto, f"informe_{id}.pdf")
-    return FileResponse(ruta_pdf, filename="informe.pdf", media_type="application/pdf")
+    # Generar nombre de archivo dinámico
+    def slugify(text):
+        text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+        text = re.sub(r'[^\w\s-]', '', text).strip().lower()
+        return re.sub(r'[-\s]+', '_', text)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    nombre_slug = slugify(nombre)
+    apellidos_slug = slugify(apellidos)
+    nombre_archivo = f"informe_{nombre_slug}_{apellidos_slug}_{timestamp}.pdf"
+
+
+    ruta_pdf = generar_pdf(contexto, nombre_archivo)
+    return FileResponse(ruta_pdf, filename=nombre_archivo, media_type="application/pdf")
 
