@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 14px; }
+        h1 { text-align: center; }
+        .box { margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #999; padding: 8px; text-align: left; }
+        ul { padding-left: 20px; }
+        .alerta { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Informe Académico</h1>
+
+    <div class="box"><strong>Estudiante:</strong> {{ nombre }} {{ apellidos }}</div>
+    <div class="box"><strong>Curso:</strong> {{ curso }} | <strong>Nivel:</strong> {{ nivel }}</div>
+    <div class="box"><strong>Promedio general:</strong> {{ promedio_general or "N/A" }}</div>
+
+    <div class="box">
+        <strong>Promedios por asignatura:</strong>
+        <ul>
+            {% for item in promedios %}
+            <li>{{ item.Asignatura }}: {{ item.Promedio }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="box">
+        <strong>Últimas calificaciones:</strong>
+        <table>
+            <tr><th>Asignatura</th><th>Nota</th><th>Fecha</th></tr>
+            {% for nota in ultimas_notas %}
+            <tr><td>{{ nota.Asignatura }}</td><td>{{ nota.Nota }}</td><td>{{ nota.Fecha }}</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="box">
+        <strong>Observaciones:</strong>
+        <ul>
+            {% for obs in observaciones %}
+            <li>{{ obs.Fecha }} - {{ obs.Texto }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    {% if alertas %}
+    <div class="box">
+        <strong class="alerta">⚠️ Alertas:</strong>
+        <ul>
+            {% for alerta in alertas %}
+            <li class="alerta">{{ alerta }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</body>
+</html>
