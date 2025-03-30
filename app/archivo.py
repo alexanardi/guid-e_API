@@ -64,3 +64,21 @@ def eliminar_archivo(id: str):
         raise HTTPException(status_code=404, detail="Archivo no encontrado")
     conn.commit(); cur.close(); conn.close()
     return {"message": "Archivo eliminado correctamente"}
+
+@router.get("/estudiantes/{id}/archivos", response_model=List[ArchivoOut])
+def listar_archivos_estudiante(id: str):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT "IdArchivo", "IdEstudiante", "NombreArchivo", "Url", "FechaSubida", "Tipo"
+        FROM "ArchivoEstudiante"
+        WHERE "IdEstudiante" = %s
+        ORDER BY "FechaSubida" DESC
+    ''', (id,))
+    archivos = [ArchivoOut(
+        IdArchivo=row[0], IdEstudiante=row[1], NombreArchivo=row[2],
+        Url=row[3], FechaSubida=row[4], Tipo=row[5]
+    ) for row in cur.fetchall()]
+    cur.close(); conn.close()
+    return archivos
+
