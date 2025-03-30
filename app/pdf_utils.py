@@ -1,17 +1,21 @@
+# app/pdf_utils.py
+import os
 from jinja2 import Environment, FileSystemLoader
 from xhtml2pdf import pisa
-import os
 
-env = Environment(loader=FileSystemLoader("app/templates"))
+TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "templates")
+env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
 
-def generar_pdf(contexto, nombre_pdf="informe.pdf"):
-    template = env.get_template("informe_estudiante.html")
-    html_content = template.render(contexto)
+def generar_pdf(contexto: dict, nombre_archivo: str):
+    template = env.get_template("informe.html")
+    html = template.render(contexto)
 
-    output_path = f"/tmp/{nombre_pdf}"
-    with open(output_path, "wb") as result_file:
-        pisa_status = pisa.CreatePDF(html_content, dest=result_file)
-        if pisa_status.err:
-            raise Exception("❌ Error al generar PDF")
-    return output_path
+    ruta_salida = f"/tmp/{nombre_archivo}"
+    with open(ruta_salida, "wb") as f:
+        pisa.CreatePDF(html, dest=f)
 
+    # Verifica que el archivo existe y tiene contenido
+    print(f"✅ PDF generado en: {ruta_salida}")
+    print(f"📄 Tamaño: {os.path.getsize(ruta_salida)} bytes")
+
+    return ruta_salida

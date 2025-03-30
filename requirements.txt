@@ -6,5 +6,5 @@ openai
 PyMuPDF
 requests
 tiktoken
-xhtml2pdf
 jinja2
+xhtml2pdf
