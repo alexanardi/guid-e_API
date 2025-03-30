@@ -188,17 +188,24 @@ def generar_informe(id: str):
     }
 
     # Generar nombre de archivo dinámico
-    def slugify(text):
-        text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
-        text = re.sub(r'[^\w\s-]', '', text).strip().lower()
-        return re.sub(r'[-\s]+', '_', text)
+    # def slugify(text):
+    #    text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+    #    text = re.sub(r'[^\w\s-]', '', text).strip().lower()
+    #    return re.sub(r'[-\s]+', '_', text)
+
+    # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # nombre_slug = slugify(nombre)
+    # apellidos_slug = slugify(apellidos)
+    # nombre_archivo = f"informe_{nombre_slug}_{apellidos_slug}_{timestamp}.pdf"
+
+
+    # ruta_pdf = generar_pdf(contexto, nombre_archivo)
+    # return FileResponse(ruta_pdf, filename=nombre_archivo, media_type="application/pdf")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    nombre_slug = slugify(nombre)
-    apellidos_slug = slugify(apellidos)
-    nombre_archivo = f"informe_{nombre_slug}_{apellidos_slug}_{timestamp}.pdf"
+    nombre_pdf = f"informe_{nombre.lower()}_{apellidos.lower()}_{timestamp}.pdf".replace(" ", "_")
+    nombre_pdf = generar_pdf(contexto, nombre_pdf)
 
+    url = f"{request.base_url}static/{nombre_pdf}"
 
-    ruta_pdf = generar_pdf(contexto, nombre_archivo)
-    return FileResponse(ruta_pdf, filename=nombre_archivo, media_type="application/pdf")
-
+    return {"informe_url": url}

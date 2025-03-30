@@ -2,8 +2,13 @@ from fastapi import FastAPI
 from app.db import get_connection
 from app import nivel, curso, asignatura, calificacion, estudiante, observacion, archivo
 from app import consultas
+from fastapi.staticfiles import StaticFiles
+
 
 app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 app.include_router(nivel.router)
 app.include_router(curso.router)
