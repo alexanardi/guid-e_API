@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from app.embeddings import buscar_fragmentos_relacionados_sql
+from app.embeddings import buscar_fragmentos_similares
+
 from fastapi.responses import FileResponse
 from app.db import get_connection
 from app.pdf_utils import generar_pdf
@@ -279,23 +281,4 @@ def buscar_fragmentos_relacionados(id_estudiante: str, pregunta: str, db, id_arc
 
     fragmentos = buscar_fragmentos_similares(embedding_pregunta, archivos_filtrados, db)
     return fragmentos
-
-def buscar_fragmentos_similares(embedding_pregunta, archivos_filtrados, db, top_k=5):
-    if not archivos_filtrados:
-        return []
-
-    placeholders = ", ".join(["%s"] * len(archivos_filtrados))
-    query = f"""
-        SELECT 
-            "Fragmento", 
-            "Embedding" <-> %s AS distancia
-        FROM "VectorArchivo"
-        WHERE "IdArchivo" IN ({placeholders})
-        ORDER BY "Embedding" <-> %s
-        LIMIT {top_k}
-    """
-    params = [embedding_pregunta] + archivos_filtrados + [embedding_pregunta]
-    resultados = db.fetch_all(query, params)
-
-    return [{"fragmento": r["Fragmento"], "distancia": r["distancia"]} for r in resultados]
 
