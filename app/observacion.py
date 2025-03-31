@@ -19,7 +19,7 @@ class ObservacionOut(ObservacionIn):
 def listar_observaciones():
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute('SELECT "IdObservacion", "IdEstudiante", "Fecha", "Texto" FROM "Observacion" ORDER BY "Fecha" DESC')
+    cur.execute('SELECT "IdObservacion", "IdEstudiante", "Fecha", "Texto" FROM "ObservacionEstudiante" ORDER BY "Fecha" DESC')
     result = [ObservacionOut(IdObservacion=r[0], IdEstudiante=r[1], Fecha=r[2], Texto=r[3]) for r in cur.fetchall()]
     cur.close(); conn.close()
     return result
@@ -29,7 +29,7 @@ def crear_observacion(data: ObservacionIn):
     conn = get_connection()
     cur = conn.cursor()
     nuevo_id = str(uuid.uuid4())
-    cur.execute('INSERT INTO "Observacion" ("IdObservacion", "IdEstudiante", "Fecha", "Texto") VALUES (%s, %s, %s, %s)',
+    cur.execute('INSERT INTO "ObservacionEstudiante" ("IdObservacion", "IdEstudiante", "Fecha", "Texto") VALUES (%s, %s, %s, %s)',
                 (nuevo_id, data.IdEstudiante, data.Fecha, data.Texto))
     conn.commit(); cur.close(); conn.close()
     return ObservacionOut(IdObservacion=nuevo_id, **data.dict())
@@ -38,7 +38,7 @@ def crear_observacion(data: ObservacionIn):
 def obtener_observacion(id: str):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute('SELECT "IdObservacion", "IdEstudiante", "Fecha", "Texto" FROM "Observacion" WHERE "IdObservacion" = %s', (id,))
+    cur.execute('SELECT "IdObservacion", "IdEstudiante", "Fecha", "Texto" FROM "ObservacionEstudiante" WHERE "IdObservacion" = %s', (id,))
     row = cur.fetchone()
     cur.close(); conn.close()
     if row:
@@ -49,7 +49,7 @@ def obtener_observacion(id: str):
 def actualizar_observacion(id: str, data: ObservacionIn):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute('UPDATE "Observacion" SET "IdEstudiante" = %s, "Fecha" = %s, "Texto" = %s WHERE "IdObservacion" = %s',
+    cur.execute('UPDATE "ObservacionEstudiante" SET "IdEstudiante" = %s, "Fecha" = %s, "Texto" = %s WHERE "IdObservacion" = %s',
                 (data.IdEstudiante, data.Fecha, data.Texto, id))
     if cur.rowcount == 0:
         raise HTTPException(status_code=404, detail="Observación no encontrada")
@@ -60,7 +60,7 @@ def actualizar_observacion(id: str, data: ObservacionIn):
 def eliminar_observacion(id: str):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute('DELETE FROM "Observacion" WHERE "IdObservacion" = %s', (id,))
+    cur.execute('DELETE FROM "ObservacionEstudiante" WHERE "IdObservacion" = %s', (id,))
     if cur.rowcount == 0:
         raise HTTPException(status_code=404, detail="Observación no encontrada")
     conn.commit(); cur.close(); conn.close()
