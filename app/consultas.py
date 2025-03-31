@@ -282,3 +282,54 @@ def buscar_fragmentos_relacionados(id_estudiante: str, pregunta: str, db, id_arc
     fragmentos = buscar_fragmentos_similares(embedding_pregunta, archivos_filtrados, db)
     return fragmentos
 
+@router.get("/estudiantes/detalle")
+def listar_estudiantes_con_curso():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT e."IdEstudiante", e."Nombre", e."Apellidos", 
+               CONCAT(n."Nombre", ' - ', c."Nombre") as Curso
+        FROM "Estudiante" e
+        LEFT JOIN "Curso" c ON e."IdCurso" = c."IdCurso"
+        LEFT JOIN "Nivel" n ON c."IdNivel" = n."IdNivel"
+        ORDER BY e."Apellidos", e."Nombre"
+    """)
+    estudiantes = [
+        {"IdEstudiante": r[0], "Nombre": r[1], "Apellidos": r[2], "Curso": r[3]}
+        for r in cur.fetchall()
+    ]
+    cur.close(); conn.close()
+    return estudiantes
+
+@router.get("/estudiantes/{id}/detalle")
+def obtener_estudiante_con_curso(id: str):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT e."IdEstudiante", e."Nombre", e."Apellidos", 
+               CONCAT(n."Nombre", ' - ', c."Nombre") as Curso
+        FROM "Estudiante" e
+        LEFT JOIN "Curso" c ON e."IdCurso" = c."IdCurso"
+        LEFT JOIN "Nivel" n ON c."IdNivel" = n."IdNivel"
+        WHERE e."IdEstudiante" = %s
+    """, (id,))
+    row = cur.fetchone()
+    cur.close(); conn.close()
+
+    if row:
+        return {"IdEstudiante": row[0], "Nombre": row[1], "Apellidos": row[2], "Curso": row[3]}
+    raise HTTPException(status_code=404, detail="Estudiante no encontrado")
+
+@router.get("/estudiantes/{id}/observaciones")
+def observaciones_por_estudiante(id: str):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT "Fecha", "Texto"
+        FROM "ObservacionEstudiante"
+        WHERE "IdEstudiante" = %s
+        ORDER BY "Fecha" DESC
+    """, (id,))
+    observaciones = [{"Fecha": r[0], "Texto": r[1]} for r in cur.fetchall()]
+    cur.close(); conn.close()
+    return observaciones
