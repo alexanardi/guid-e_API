@@ -35,7 +35,7 @@ def buscar_fragmentos_relacionados_sql(id_estudiante: str, pregunta: str, cur, i
 
     return [{"fragmento": r[0], "distancia": r[1]} for r in resultados]
 
-def buscar_fragmentos_similares(embedding_pregunta, archivos_filtrados, db, top_k=5):
+def buscar_fragmentos_similares(embedding_pregunta, archivos_filtrados, cur, top_k=5):
     if not archivos_filtrados:
         return []
 
@@ -43,13 +43,14 @@ def buscar_fragmentos_similares(embedding_pregunta, archivos_filtrados, db, top_
     query = f"""
         SELECT 
             "Fragmento", 
-            "Embedding" <-> %s::vector AS distancia
+            "Embedding" <-> (%s::vector) AS distancia
         FROM "VectorArchivo"
         WHERE "IdArchivo" IN ({placeholders})
-        ORDER BY "Embedding" <-> %s::vector
+        ORDER BY "Embedding" <-> (%s::vector)
         LIMIT {top_k}
     """
     params = [embedding_pregunta] + archivos_filtrados + [embedding_pregunta]
-    resultados = db.fetch_all(query, params)
+    cur.execute(query, params)
+    resultados = cur.fetchall()
 
-    return [{"fragmento": r["Fragmento"], "distancia": r["distancia"]} for r in resultados]
+    return [{"fragmento": r[0], "distancia": r[1]} for r in resultados]
