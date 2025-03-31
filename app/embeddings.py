@@ -1,7 +1,7 @@
 from app.db import get_connection
 from app.utils import obtener_embedding
 
-def buscar_fragmentos_relacionados_sql(id_estudiante: str, pregunta: str, cur, id_archivo: str = None):
+def buscar_fragmentos_relacionados_sql(id_estudiante: str, pregunta: str, cur, id_archivo: str = None, top_k: int = 5):
     from app.llm import generar_embedding
     embedding_pregunta = generar_embedding(pregunta)
 
