@@ -23,11 +23,11 @@ def buscar_fragmentos_relacionados_sql(id_estudiante: str, pregunta: str, cur, i
     query = f"""
         SELECT 
             "Fragmento", 
-            "Embedding" <-> %s AS distancia
+            "Embedding" <-> %s::vector AS distancia
         FROM "VectorArchivo"
         WHERE "IdArchivo" IN ({placeholders})
-        ORDER BY "Embedding" <-> %s
-        LIMIT 5
+        ORDER BY "Embedding" <-> %s::vector
+        LIMIT {top_k}
     """
     params = [embedding_pregunta] + archivos_filtrados + [embedding_pregunta]
     cur.execute(query, params)
