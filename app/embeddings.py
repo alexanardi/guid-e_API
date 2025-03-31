@@ -1,17 +1,37 @@
 from app.db import get_connection
 from app.utils import obtener_embedding
 
-def buscar_fragmentos_relacionados(id_estudiante: str, pregunta: str, limite: int = 5):
-    embedding = obtener_embedding(pregunta)
-    conn = get_connection()
-    cur = conn.cursor()
+def buscar_fragmentos_relacionados_sql(id_estudiante: str, pregunta: str, cur, id_archivo: str = None):
+    from app.llm import generar_embedding
+    embedding_pregunta = generar_embedding(pregunta)
+
     cur.execute("""
-        SELECT "Fragmento", 1 - (Embedding <#> %s) AS similitud
-        FROM "VectorArchivo"
+        SELECT "IdArchivo" FROM "ArchivoEstudiante"
         WHERE "IdEstudiante" = %s
-        ORDER BY similitud DESC
-        LIMIT %s
-    """, (embedding, id_estudiante, limite))
-    resultados = [{"fragmento": row[0], "similitud": row[1]} for row in cur.fetchall()]
-    cur.close(); conn.close()
-    return resultados
+    """, (id_estudiante,))
+    archivos = cur.fetchall()
+    if not archivos:
+        return []
+
+    lista_archivos = [a[0] for a in archivos]
+    if id_archivo and id_archivo not in lista_archivos:
+        return []
+
+    archivos_filtrados = [id_archivo] if id_archivo else lista_archivos
+
+    placeholders = ", ".join(["%s"] * len(archivos_filtrados))
+    query = f"""
+        SELECT 
+            "Fragmento", 
+            "Embedding" <-> %s AS distancia
+        FROM "VectorArchivo"
+        WHERE "IdArchivo" IN ({placeholders})
+        ORDER BY "Embedding" <-> %s
+        LIMIT 5
+    """
+    params = [embedding_pregunta] + archivos_filtrados + [embedding_pregunta]
+    cur.execute(query, params)
+    resultados = cur.fetchall()
+
+    return [{"fragmento": r[0], "distancia": r[1]} for r in resultados]
+

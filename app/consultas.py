@@ -199,7 +199,7 @@ def generar_informe(id: str, request: Request):  # <- se agregó "request"
     return {"informe_url": url}
 
 @router.post("/estudiantes/{id}/preguntar")
-def preguntar_estudiante(id: str, data: dict, request: Request):
+def preguntar_estudiante(id: str, data: dict):
     pregunta = data.get("pregunta")
     id_archivo = data.get("id_archivo")
     nombre_archivo = data.get("nombre_archivo")
@@ -207,32 +207,34 @@ def preguntar_estudiante(id: str, data: dict, request: Request):
     if not pregunta:
         raise HTTPException(status_code=400, detail="Falta la pregunta")
 
-    db = request.app.state.db
+    conn = get_connection()
+    cur = conn.cursor()
 
-    # Validar que exista el archivo para este estudiante si se especificó
     archivo = None
     if id_archivo:
-        archivo = db.fetch_one(
-            "SELECT * FROM ArchivoEstudiante WHERE IdArchivo = %s AND IdEstudiante = %s",
-            (id_archivo, id)
-        )
+        cur.execute("""
+            SELECT "IdArchivo" FROM "ArchivoEstudiante"
+            WHERE "IdArchivo" = %s AND "IdEstudiante" = %s
+        """, (id_archivo, id))
+        archivo = cur.fetchone()
     elif nombre_archivo:
-        archivo = db.fetch_one(
-            "SELECT * FROM ArchivoEstudiante WHERE NombreArchivo = %s AND IdEstudiante = %s",
-            (nombre_archivo, id)
-        )
+        cur.execute("""
+            SELECT "IdArchivo" FROM "ArchivoEstudiante"
+            WHERE "NombreArchivo" = %s AND "IdEstudiante" = %s
+        """, (nombre_archivo, id))
+        archivo = cur.fetchone()
 
     if (id_archivo or nombre_archivo) and not archivo:
+        cur.close(); conn.close()
         raise HTTPException(status_code=404, detail="Archivo no encontrado para este estudiante")
 
-    fragmentos = buscar_fragmentos_relacionados(
-        id_estudiante=id,
-        pregunta=pregunta,
-        db=db,
-        id_archivo=archivo["IdArchivo"] if archivo else None
-    )
+    id_archivo_valido = archivo[0] if archivo else None
+
+    from app.embeddings import buscar_fragmentos_relacionados_sql
+    fragmentos = buscar_fragmentos_relacionados_sql(id, pregunta, cur, id_archivo_valido)
 
     if not fragmentos:
+        cur.close(); conn.close()
         return {
             "respuesta": "No encontré información relevante en los archivos del estudiante para responder a tu pregunta.",
             "fragmentos_usados": []
@@ -241,21 +243,23 @@ def preguntar_estudiante(id: str, data: dict, request: Request):
     contexto = "\n".join([f["fragmento"] for f in fragmentos])
     prompt = f"""Usa la siguiente información de contexto para responder la pregunta.
 
-Contexto:
-{contexto}
+    Contexto:
+    {contexto}
 
-Pregunta:
-{pregunta}
+    Pregunta:
+    {pregunta}
 
-Respuesta:"""
+    Respuesta:"""
 
     from app.llm import obtener_respuesta
     respuesta = obtener_respuesta(prompt)
 
+    cur.close(); conn.close()
     return {
         "respuesta": respuesta,
         "fragmentos_usados": fragmentos
     }
+
 
 def buscar_fragmentos_relacionados(id_estudiante: str, pregunta: str, db, id_archivo: str = None):
     from app.llm import generar_embedding
