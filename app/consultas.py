@@ -201,19 +201,43 @@ def generar_informe(id: str, request: Request):  # <- se agregó "request"
 @router.post("/estudiantes/{id}/preguntar")
 def preguntar_estudiante(id: str, data: dict, request: Request):
     pregunta = data.get("pregunta")
+    id_archivo = data.get("id_archivo")
+    nombre_archivo = data.get("nombre_archivo")
+
     if not pregunta:
         raise HTTPException(status_code=400, detail="Falta la pregunta")
 
-    # Buscar fragmentos en la base de datos
-    fragmentos = buscar_fragmentos_relacionados(id_estudiante=id, pregunta=pregunta)
-    
+    db = request.app.state.db
+
+    # Validar que exista el archivo para este estudiante si se especificó
+    archivo = None
+    if id_archivo:
+        archivo = db.fetch_one(
+            "SELECT * FROM ArchivoEstudiante WHERE IdArchivo = %s AND IdEstudiante = %s",
+            (id_archivo, id)
+        )
+    elif nombre_archivo:
+        archivo = db.fetch_one(
+            "SELECT * FROM ArchivoEstudiante WHERE NombreArchivo = %s AND IdEstudiante = %s",
+            (nombre_archivo, id)
+        )
+
+    if (id_archivo or nombre_archivo) and not archivo:
+        raise HTTPException(status_code=404, detail="Archivo no encontrado para este estudiante")
+
+    fragmentos = buscar_fragmentos_relacionados(
+        id_estudiante=id,
+        pregunta=pregunta,
+        db=db,
+        id_archivo=archivo["IdArchivo"] if archivo else None
+    )
+
     if not fragmentos:
         return {
             "respuesta": "No encontré información relevante en los archivos del estudiante para responder a tu pregunta.",
             "fragmentos_usados": []
         }
 
-    # Crear el prompt para OpenAI
     contexto = "\n".join([f["fragmento"] for f in fragmentos])
     prompt = f"""Usa la siguiente información de contexto para responder la pregunta.
 
@@ -232,3 +256,42 @@ Respuesta:"""
         "respuesta": respuesta,
         "fragmentos_usados": fragmentos
     }
+
+def buscar_fragmentos_relacionados(id_estudiante: str, pregunta: str, db, id_archivo: str = None):
+    from app.llm import generar_embedding
+    embedding_pregunta = generar_embedding(pregunta)
+
+    query = "SELECT IdArchivo FROM ArchivoEstudiante WHERE IdEstudiante = %s"
+    archivos = db.fetch_all(query, (id_estudiante,))
+
+    if not archivos:
+        return []
+
+    lista_archivos = [a["IdArchivo"] for a in archivos]
+    if id_archivo and id_archivo not in lista_archivos:
+        return []
+
+    archivos_filtrados = [id_archivo] if id_archivo else lista_archivos
+
+    fragmentos = buscar_fragmentos_similares(embedding_pregunta, archivos_filtrados, db)
+    return fragmentos
+
+def buscar_fragmentos_similares(embedding_pregunta, archivos_filtrados, db, top_k=5):
+    if not archivos_filtrados:
+        return []
+
+    placeholders = ", ".join(["%s"] * len(archivos_filtrados))
+    query = f"""
+        SELECT 
+            "Fragmento", 
+            "Embedding" <-> %s AS distancia
+        FROM "VectorArchivo"
+        WHERE "IdArchivo" IN ({placeholders})
+        ORDER BY "Embedding" <-> %s
+        LIMIT {top_k}
+    """
+    params = [embedding_pregunta] + archivos_filtrados + [embedding_pregunta]
+    resultados = db.fetch_all(query, params)
+
+    return [{"fragmento": r["Fragmento"], "distancia": r["distancia"]} for r in resultados]
+
