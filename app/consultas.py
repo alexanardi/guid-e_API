@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request
-from app.embeddings import buscar_fragmentos_relacionados
+from app.embeddings import buscar_fragmentos_relacionados_sql
 from fastapi.responses import FileResponse
 from app.db import get_connection
 from app.pdf_utils import generar_pdf
