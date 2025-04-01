@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, Request
+# from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Body
+from app.schemas import PreguntaRequest
 from app.embeddings import buscar_fragmentos_relacionados_sql
 from app.embeddings import buscar_fragmentos_similares
 
@@ -201,10 +203,10 @@ def generar_informe(id: str, request: Request):  # <- se agregó "request"
     return {"informe_url": url}
 
 @router.post("/estudiantes/{id}/preguntar")
-def preguntar_estudiante(id: str, data: dict):
-    pregunta = data.get("pregunta")
-    id_archivo = data.get("id_archivo")
-    nombre_archivo = data.get("nombre_archivo")
+def preguntar_estudiante(id: str, data: PreguntaRequest = Body(...)):
+    pregunta = data.pregunta
+    id_archivo = data.id_archivo
+    nombre_archivo = data.nombre_archivo
 
     if not pregunta:
         raise HTTPException(status_code=400, detail="Falta la pregunta")

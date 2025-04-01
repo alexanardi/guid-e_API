@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-# from app import curso, asignatura, calificacion, estudiante, observacion, archivo, consultas
 from app import consultas
 from fastapi.staticfiles import StaticFiles
 
@@ -8,12 +7,6 @@ app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# app.include_router(curso.router)
-# app.include_router(asignatura.router)
-# app.include_router(calificacion.router)
-# app.include_router(estudiante.router)
-# app.include_router(observacion.router)
-# app.include_router(archivo.router)
 app.include_router(consultas.router)
 
 from fastapi.openapi.utils import get_openapi

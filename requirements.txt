@@ -8,3 +8,4 @@ requests
 tiktoken
 jinja2
 xhtml2pdf
+pydantic
