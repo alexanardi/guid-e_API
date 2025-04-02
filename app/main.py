@@ -1,15 +1,23 @@
 from fastapi import FastAPI
 from app import consultas
 from fastapi.staticfiles import StaticFiles
-
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 
 app = FastAPI()
+
+# 🔒 Middleware CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # solo frontend local
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(consultas.router)
-
-from fastapi.openapi.utils import get_openapi
 
 def custom_openapi():
     if app.openapi_schema:
@@ -27,3 +35,4 @@ def custom_openapi():
     return app.openapi_schema
 
 app.openapi = custom_openapi
+
